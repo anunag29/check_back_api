@@ -11,9 +11,9 @@ from .util import load_model, load_processor
 
 
 class TrocrPredictor:
-    def __init__(self, use_local_model: bool = True):
+    def __init__(self, use_local_model: bool = True, use_custom_decoder: bool = False):
         self.processor = load_processor()
-        self.model = load_model(use_local_model)
+        self.model = load_model(use_local_model, use_custom_decoder)
 
     def predict_for_image_paths(self, image_paths: list[str]) -> list[tuple[str, float]]:
         images = [Image.open(path) for path in image_paths]
