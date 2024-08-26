@@ -9,7 +9,7 @@ from .custom_decoder import CustomTrOCRForCausalLM
 log = Logger("account_ocr_service", "util", Config.get("logs.path"), Config.get("logs.level"))
 
 def load_processor() -> TrOCRProcessor:
-    return TrOCRProcessor.from_pretrained(paths.trocr_repo)
+    return TrOCRProcessor.from_pretrained(paths.model_path)
 
 
 def load_model(from_disk: bool, use_custom_decoder: bool = False) -> VisionEncoderDecoderModel:
@@ -23,7 +23,7 @@ def load_model(from_disk: bool, use_custom_decoder: bool = False) -> VisionEncod
             custom_decoder = CustomTrOCRForCausalLM(decoder_config)
             model.decoder = custom_decoder
 
-            from    .torch import load_model
+            from safetensors.torch import load_model
             load_model(model, paths.model_path)
             log.debug(f"Loaded custom decoder from {paths.model_path}")
     else:

@@ -20,6 +20,7 @@ COPY ./models/preprocessor_config.json /app/models/
 COPY ./models/tokenizer_config.json /app/models/
 COPY ./models/merges.txt /app/models/
 COPY ./models/vocab.json /app/models/
+COPY ./models/tokenizer.json /app/models/
 
 # Install any needed dependencies specified in requirements.txt
 RUN apt-get update && apt-get install -y libgl1-mesa-glx && \

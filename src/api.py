@@ -36,6 +36,7 @@ async def health_check():
 
 @app.post("/predict")
 async def predict(image_file: UploadFile = File(...)):
+    ocr_results = []
     try:
         # Create a directory for input image
         upload_dir = f"{UPLOAD_DIRECTORY}"
@@ -48,7 +49,7 @@ async def predict(image_file: UploadFile = File(...)):
         # Use EasyOCR to extract bounding boxes
         bounding_boxes = easyocr_model.extract_bounding_boxes(image)
         
-        ocr_results = []
+        
         for bbox_info in bounding_boxes:
             # Crop image using the bounding box
             cropped_image = easyocr_model.crop_image(image, bbox_info['bbox'])
@@ -61,7 +62,7 @@ async def predict(image_file: UploadFile = File(...)):
             ocr_results.append({
                 # 'easyocr_text': bbox_info['text'],s
                 'text': trocr_text,
-                'bbox': list(bbox_info['bbox']),
+                'bbox': str(bbox_info['bbox']),
                 'text_conf': trocr_conf
             })
             
@@ -76,15 +77,17 @@ async def predict(image_file: UploadFile = File(...)):
           i+=1
 
         phone = text_seq[i]
-        acct = text_seq[i+1]
-
         phone = phone.replace(" ", "")
+        
+        ocr_results.append({
+            'Phone': phone
+        })
+        
+        acct = text_seq[i+1]
         acct = acct.replace(" ", "")
 
-        ocr_results.append({
-            'Phone': phone,
-            'Account': acct
-        })
+        ocr_results[-1]["Account"] = acct
+
 
         os.remove(image_path)
         # log.info(f"ocr_results {ocr_results}")
@@ -92,7 +95,7 @@ async def predict(image_file: UploadFile = File(...)):
         
     except Exception as ex:
         log.error(f'Error: {ex}', ex)
-        return {'ocr_results': [], 'error': str(ex)}
+        return {'ocr_results': ocr_results, 'error': str(ex)}
 
 @app.exception_handler(ChequeException)
 async def handle_custom_error(request: Request, ex: ChequeException):
