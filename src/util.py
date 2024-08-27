@@ -24,7 +24,7 @@ def load_model(from_disk: bool, use_custom_decoder: bool = False) -> VisionEncod
             model.decoder = custom_decoder
 
             from safetensors.torch import load_model
-            load_model(model, paths.model_path)
+            load_model(model, f"{paths.model_path}/model.safetensors")
             log.debug(f"Loaded custom decoder from {paths.model_path}")
     else:
         model: VisionEncoderDecoderModel = VisionEncoderDecoderModel.from_pretrained(paths.trocr_repo)

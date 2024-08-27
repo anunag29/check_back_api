@@ -18,7 +18,7 @@ log = Logger("cheque_back_ocr_service", "api", Config.get("logs.path"), Config.g
 # Define the directory where the images will be saved
 UPLOAD_DIRECTORY = "input_image"
 
-model = TrocrPredictor()
+model = TrocrPredictor(use_custom_decoder=True)
 
 easyocr_model = EasyOCRDetect()
 
