@@ -39,3 +39,36 @@ def init_model_for_training(model: VisionEncoderDecoderModel, processor: TrOCRPr
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
     model.config.vocab_size = model.config.decoder.vocab_size
+
+
+def post_process(ocr_results):
+    text_seq = []
+    for seq in ocr_results:
+      text_seq.append(seq["text"].replace(" ", ""))
+
+    text_seq = sorted(text_seq, key=len)
+
+    ocr_results.append({
+        'Phone': "No Match Found",
+        'Account':"No Match Found"
+    })
+
+    try: 
+        i=0
+        while (len(text_seq[i]) < 10):
+            i+=1
+
+        if len(text_seq[i]) == 10:
+            phone = text_seq[i]
+            ocr_results[-1]['Phone'] = phone
+
+            acct = text_seq[i+1]
+            ocr_results[-1]['Account'] = acct
+
+        else:
+            acct = text_seq[i]
+            ocr_results[-1]['Account'] = acct
+    except:
+        pass
+    
+    return ocr_results

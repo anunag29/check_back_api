@@ -11,12 +11,15 @@ from src.logger.logger import Logger
 from src.exception.cheque_exception import ChequeException
 from .trocr_predictor import TrocrPredictor
 from .easyocr_detect import EasyOCRDetect
+from .util import post_process
+
 
 app = FastAPI()
 log = Logger("cheque_back_ocr_service", "api", Config.get("logs.path"), Config.get("logs.level"))
 
 # Define the directory where the images will be saved
 UPLOAD_DIRECTORY = "input_image"
+# OUTPUT_DIR = "/app/output"
 
 model = TrocrPredictor(use_custom_decoder=True)
 
@@ -50,14 +53,16 @@ async def predict(image_file: UploadFile = File(...)):
         bounding_boxes = easyocr_model.extract_bounding_boxes(image)
         
         
-        for bbox_info in bounding_boxes:
+        for j,bbox_info in enumerate(bounding_boxes):
             # Crop image using the bounding box
             cropped_image = easyocr_model.crop_image(image, bbox_info['bbox'])
+            # save_path = os.path.join(OUTPUT_DIR,image_file.filename[:-4])
+            # cropped_image.save(os.path.join(save_path, f"crop{j}.jpeg"))
+
             # Use TrOCR to perform OCR on the cropped image
             trocr_text, trocr_conf = list(model.predict_images([cropped_image]))[0]
             log.info(f"Detected {trocr_text} with confidence: {trocr_conf}")
             log.info(f"bbox_info {bbox_info}")
-        
             # Combine results from EasyOCR and TrOCR
             ocr_results.append({
                 # 'easyocr_text': bbox_info['text'],s
@@ -67,26 +72,7 @@ async def predict(image_file: UploadFile = File(...)):
             })
             
         #post-processing
-        text_seq = []
-        for seq in ocr_results:
-              text_seq.append(seq['text'])
-
-        text_seq = sorted(text_seq, key=len)
-        i=0
-        while (len(text_seq[i]) < 10):
-          i+=1
-
-        phone = text_seq[i]
-        phone = phone.replace(" ", "")
-        
-        ocr_results.append({
-            'Phone': phone
-        })
-        
-        acct = text_seq[i+1]
-        acct = acct.replace(" ", "")
-
-        ocr_results[-1]["Account"] = acct
+        ocr_results = post_process(ocr_results)
 
 
         os.remove(image_path)
