@@ -15,8 +15,11 @@ class EasyOCRDetect:
       if image_np.dtype != np.uint8:
           image_np = image_np.astype(np.uint8)
 
-      _ , bbox = self.reader.detect(image_np)
-      bounding_boxes = bbox[0]
+      results = self.reader.readtext(image_np)
+      bounding_boxes = []
+
+      for (bbox, _, _) in results:
+        bounding_boxes.append(bbox)
 
       try:
         merged_boxes = []
