@@ -53,21 +53,21 @@ async def predict(image_file: UploadFile = File(...)):
         bounding_boxes = easyocr_model.extract_bounding_boxes(image)
         
         
-        for j,bbox_info in enumerate(bounding_boxes):
+        for j,bbox in enumerate(bounding_boxes):
             # Crop image using the bounding box
-            cropped_image = easyocr_model.crop_image(image, bbox_info['bbox'])
+            cropped_image = easyocr_model.crop_image(image, bbox)
             # save_path = os.path.join(OUTPUT_DIR,image_file.filename[:-4])
             # cropped_image.save(os.path.join(save_path, f"crop{j}.jpeg"))
 
             # Use TrOCR to perform OCR on the cropped image
             trocr_text, trocr_conf = list(model.predict_images([cropped_image]))[0]
             log.info(f"Detected {trocr_text} with confidence: {trocr_conf}")
-            log.info(f"bbox_info {bbox_info}")
+            log.info(f"bbox_info {bbox}")
             # Combine results from EasyOCR and TrOCR
             ocr_results.append({
                 # 'easyocr_text': bbox_info['text'],s
                 'text': trocr_text,
-                'bbox': str(bbox_info['bbox']),
+                'bbox': str(bbox),
                 'text_conf': trocr_conf
             })
             
