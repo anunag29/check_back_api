@@ -11,8 +11,8 @@ class CustomTrOCRForCausalLM(TrOCRForCausalLM):
     def __init__(self, config):
         super().__init__(config)
         self.non_digit_token_ids = self.get_non_digit_token_ids()
-        self.logits_storage = []
-        self.input_ids_storage = []
+        # self.logits_storage = []
+        # self.input_ids_storage = []
 
     def get_non_digit_token_ids(self):
       tokenizer = RobertaTokenizerFast.from_pretrained("microsoft/trocr-base-handwritten")
@@ -62,8 +62,8 @@ class CustomTrOCRForCausalLM(TrOCRForCausalLM):
         )
         logits = outputs.logits
 
-        self.logits_storage.append(logits)
-        self.input_ids_storage.append(input_ids)
+        # self.logits_storage.append(logits)
+        # self.input_ids_storage.append(input_ids)
 
         mask = torch.zeros_like(logits).to(logits.device)
         mask[:, :, self.non_digit_token_ids] = float('-inf')
