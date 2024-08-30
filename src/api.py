@@ -70,8 +70,8 @@ async def predict(image_file: UploadFile = File(...)):
                 trocr_text, trocr_conf = list(model.predict_images([cropped_image]))[0]
                 process_time = time.time() - start_time
                 latencies[f"TrOCR_process_crop{i}_latency"] = process_time
-                i =+ 1
-                TrOCR_latency_tot =+ process_time
+                i = i + 1
+                TrOCR_latency_tot = TrOCR_latency_tot + process_time
                 log.info(f"Detected {trocr_text} with confidence: {trocr_conf}")
                 log.info(f"bbox_info {bbox}")
                 # Combine results from EasyOCR and TrOCR
