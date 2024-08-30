@@ -49,31 +49,44 @@ async def predict(image_file: UploadFile = File(...)):
             f.write(await image_file.read())
 
         image = Image.open(image_path).convert("RGB")
+        latencies = {}
         # Use EasyOCR to extract bounding boxes
+        start_time = time.time()
         bounding_boxes = easyocr_model.extract_bounding_boxes(image)
+        process_time = time.time() - start_time
+        latencies["easyocr_process_latency"] = process_time
         
-        
+        i=1
+        TrOCR_latency_tot = 0
         for j,bbox in enumerate(bounding_boxes):
             # Crop image using the bounding box
             cropped_image = easyocr_model.crop_image(image, bbox)
             # save_path = os.path.join(OUTPUT_DIR,image_file.filename[:-4])
             # cropped_image.save(os.path.join(save_path, f"crop{j}.jpeg"))
-
-            # Use TrOCR to perform OCR on the cropped image
-            trocr_text, trocr_conf = list(model.predict_images([cropped_image]))[0]
-            log.info(f"Detected {trocr_text} with confidence: {trocr_conf}")
-            log.info(f"bbox_info {bbox}")
-            # Combine results from EasyOCR and TrOCR
-            ocr_results.append({
-                # 'easyocr_text': bbox_info['text'],s
-                'text': trocr_text,
-                'bbox': str(bbox),
-                'text_conf': trocr_conf
-            })
+            width, _ = cropped_image.size
+            if (200 <= width and width <= 800): #only passing relavent crops i.e 200 <= width <= 800 
+                start_time = time.time()
+                # Use TrOCR to perform OCR on the cropped image
+                trocr_text, trocr_conf = list(model.predict_images([cropped_image]))[0]
+                process_time = time.time() - start_time
+                latencies[f"TrOCR_process_crop{i}_latency"] = process_time
+                i =+ 1
+                TrOCR_latency_tot =+ process_time
+                log.info(f"Detected {trocr_text} with confidence: {trocr_conf}")
+                log.info(f"bbox_info {bbox}")
+                # Combine results from EasyOCR and TrOCR
+                ocr_results.append({
+                    # 'easyocr_text': bbox_info['text'],s
+                    'text': trocr_text,
+                    'bbox': str(bbox),
+                    'text_conf': trocr_conf
+                })
             
         #post-processing
         ocr_results = post_process(ocr_results)
 
+        latencies["TrOCR_latency_total"] = TrOCR_latency_tot
+        ocr_results.append(latencies)
 
         os.remove(image_path)
         # log.info(f"ocr_results {ocr_results}")
