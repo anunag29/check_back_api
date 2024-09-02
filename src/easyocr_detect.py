@@ -142,5 +142,3 @@ class EasyOCRDetect:
       cropped_pil_image = Image.fromarray(warped)
 
       return cropped_pil_image
-
-easyocr_model = EasyOCRDetect()
